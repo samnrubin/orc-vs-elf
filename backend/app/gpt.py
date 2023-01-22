@@ -19,6 +19,8 @@ def send_prompt(prompt: str) -> str:
 
 # 
 def generate_moves(attacker: bool, character: str, last_move: str = initial_move):
+  if not last_move:
+    last_move = initial_move
   while True:
     try:
       if attacker:
@@ -72,8 +74,12 @@ def evaluate_moves(attacker: str, elf_move: str, orc_move: str, last_move: str =
       print(prompt)
       resp = send_prompt(prompt)
       # Extract 'Yes.' or 'No.' from response, then put it as a bool in a dict with the reasoning
-      result = resp.split(".")[0]
+      result = resp.strip().split(".")[0]
       reasoning = ""
+      print("result:")
+      print(result)
+      print("reasoning:")
+      print(reasoning)
 
       if result == "Yes":
         result = True
@@ -91,8 +97,11 @@ def evaluate_moves(attacker: str, elf_move: str, orc_move: str, last_move: str =
     except Exception as e:
       print(e)
       print("Error, retrying")
+      exit()
 
 def generate_next_move(attacker: str, elf_move: str, orc_move: str, result: bool, reasoning: str, last_move: str = initial_move):
+  if not last_move:
+    last_move = initial_move
   while True:
     try:
       attacker_move = ""
@@ -125,10 +134,7 @@ def generate_next_move(attacker: str, elf_move: str, orc_move: str, result: bool
     except Exception as e:
       print(e)
       print("Error, retrying")
+      exit()
 
   
 
-
-# Repeat!
-
-# Test stuff
