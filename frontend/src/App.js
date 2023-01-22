@@ -8,7 +8,7 @@ import {
   Heading
 } from '@chakra-ui/react';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const testMoves = ["Test1", "Test2", "Test3"]
 const testLastMove = "The orc attacks the elf"
@@ -17,7 +17,10 @@ const url = "http://localhost:8000/"
 function App() {
   // States are "choose" for choosing a move, "display" for displaying the moves, and "end" for the end of the game
   const [state, setState] = useState("choose");
+  const [gameState, setGameState] = useState({});
   const [player, setPlayer] = useState("");
+  const [turn, setTurn] = useState(0);
+  const [attacker, setAttacker] = useState("Orc");
 
   async function submitMove(moveChoice) {
     await fetch(url + "take_action", {
@@ -28,6 +31,33 @@ function App() {
       body: JSON.stringify({action: moveChoice, player: player})
     })
   }
+
+  async function fetchState() {
+    const response = await fetch(url + "game_state")
+    const data = await response.json()
+    console.log(data)
+    if (data.turn_num != turn) {
+      setTurn(data.turn_num)
+      setState("display")
+      setGameState(data)
+      if (data.turn_num % 2 == 0) {
+        setAttacker("orc")
+      } else {
+        setAttacker("elf")
+      }
+    }
+  }
+
+  async function fetchPlayer() {
+    const response = await fetch(url + "player")
+    const data = await response.json()
+    setPlayer(data.name)
+  }
+
+  useEffect(() => {
+    fetchPlayer()
+    setInterval(fetchState, 1000)
+  }, [])
 
   return (
     <Flex
@@ -56,7 +86,7 @@ function App() {
           maxW="600px"
         >
           {state === "choose" ?
-          <ChooseMove attacker="Orc" attackerOptions={testMoves} defenderOptions={testMoves} lastMove={testLastMove} player="Elf" submitMove={submitMove} />
+          <ChooseMove attacker={attacker} attackerOptions={testMoves} defenderOptions={testMoves} lastMove={testLastMove} player={player} submitMove={submitMove} />
           :
           <DisplayResults success={true} reasoning={"The orc rolled a 5 and the elf rolled a 4"} moveDescription={"The orc attacks the elf"} attacker={"Orc"} />
           }
@@ -157,6 +187,7 @@ const MoveDisplay = ({title, moves, submitMove}) => {
           <Box
             onClick={() => {setSelectedOption(index); submitMove(index)}}
             className= {selectedOption === index ? "selected" : "unselected"}
+            key={move}
           >
             <Text>
               {move}
