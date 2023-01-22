@@ -66,7 +66,7 @@ class GameStatus():
 
 class Game:
     def __init__(self, player1name, player2name):
-        self.player1attack = True
+        self.player1attack = False
         self.player1 = Player(player1name, 3)
         self.player2 = Player(player2name, 3)
         self.turn_num = 0
@@ -110,6 +110,16 @@ def get_actions(player, is_attack):
         return random.sample(defense_moves, 3)
 
 game = Game("elf", "orc")
+players = []
+
+@app.get("/player")
+async def player():
+    if "elf" not in players:
+        players.append("elf")
+        return {"name": "elf"}
+    else:
+        players.append("orc")
+        return {"name": "orc"}
 
 @app.post("/new_game")
 async def new_game():

@@ -128,11 +128,7 @@ def generate_next_move(attacker: str, elf_move: str, orc_move: str, result: bool
 
   
 
-# Describe what happens next
 
 # Repeat!
 
 # Test stuff
-
-print(generate_moves(True, "orc"))
-print(generate_moves(False, "elf"))
