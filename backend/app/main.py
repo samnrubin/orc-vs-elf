@@ -14,33 +14,6 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-defense_moves = [
-    "Parry",
-    "Block",
-    "Riposte",
-    "Disarm",
-    "Feint",
-    "Redoublement",
-    "Cutover",
-    "Half-swording",
-    "Bind",
-    "Counter-attack"
-]
-
-attack_moves = [
-    "Thrust",
-    "Slash",
-    "Lunge",
-    "Chop",
-    "Cut",
-    "Flick",
-    "Sweep",
-    "Hack",
-    "Stab",
-    "Overhead strike"
-]
-
-
 class Action(Enum):
     ONE = 0
     TWO = 1
