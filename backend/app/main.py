@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from gpt import generate_moves
 from enum import Enum
 import random
 
@@ -64,14 +65,12 @@ class Game:
         self.description = ""
         self.outcome = ""
         self.reason = ""
-        self.player1.available_actions = get_actions(player1name, True)
-        self.player2.available_actions = get_actions(player2name, False)
+        self.player1.available_actions = generate_moves(True, player1name)
+        self.player2.available_actions = generate_moves(False, player2name)
 
     def next_turn(self):
         if self.player1.taken_action and self.player2.taken_action:
             self.current_turn_result()
-            self.player1.taken_action = None
-            self.player2.taken_action = None
             self.turn_num += 1
             self.description = "new desc"
             self.outcome = "new outcome"
@@ -83,8 +82,12 @@ class Game:
             if self.player2.health <= 0:
                 self.game_status = GameStatus.PLAYER1WON
             self.player1attack = not self.player1attack
-            self.player1.available_actions = get_actions(self.player1.name, self.player1attack)
-            self.player2.available_actions = get_actions(self.player2.name, not self.player1attack)
+            last_player1_move = self.player1.available_actions[self.player1.taken_action.value]
+            last_player2_move = self.player2.available_actions[self.player2.taken_action.value]
+            self.player1.available_actions = generate_moves(self.player1attack, self.player1.name, last_player1_move)
+            self.player2.available_actions = generate_moves(not self.player1attack, self.player2.name, last_player2_move)
+            self.player1.taken_action = None
+            self.player2.taken_action = None
 
     def current_turn_result(self):
         # send taken action by both player to the prompt and get back description, outcome and reason
