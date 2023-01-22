@@ -12,10 +12,23 @@ import { useState } from 'react';
 
 const testMoves = ["Test1", "Test2", "Test3"]
 const testLastMove = "The orc attacks the elf"
+const url = "http://localhost:8000/"
 
 function App() {
   // States are "choose" for choosing a move, "display" for displaying the moves, and "end" for the end of the game
   const [state, setState] = useState("choose");
+  const [player, setPlayer] = useState("");
+
+  async function submitMove(moveChoice) {
+    await fetch(url + "take_action", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({action: moveChoice, player: player})
+    })
+  }
+
   return (
     <Flex
       width="100vw"
@@ -40,9 +53,10 @@ function App() {
           flexDirection={"column"}
           bg = "#ffffffa6"
           color="black"
+          maxW="600px"
         >
           {state === "choose" ?
-          <ChooseMove attacker="Orc" attackerOptions={testMoves} defenderOptions={testMoves} lastMove={testLastMove} player="Elf" />
+          <ChooseMove attacker="Orc" attackerOptions={testMoves} defenderOptions={testMoves} lastMove={testLastMove} player="Elf" submitMove={submitMove} />
           :
           <DisplayResults success={true} reasoning={"The orc rolled a 5 and the elf rolled a 4"} moveDescription={"The orc attacks the elf"} attacker={"Orc"} />
           }
@@ -107,7 +121,7 @@ const HealthDisplay = ({heartNum}) => {
   )
 }
 
-const ChooseMove = ({attacker, attackerOptions, defenderOptions, lastMove, player}) => {
+const ChooseMove = ({attacker, attackerOptions, defenderOptions, lastMove, player, submitMove}) => {
   return (
     <>
       <Flex
@@ -124,41 +138,32 @@ const ChooseMove = ({attacker, attackerOptions, defenderOptions, lastMove, playe
         <Heading>Last move:</Heading>
         <Text>{lastMove}</Text>
       </Flex>
-      <MoveDisplay title="Attacker" moves={attackerOptions} />
-      <MoveDisplay title="Defender" moves={defenderOptions} />
+      <MoveDisplay title="Attacker" moves={attackerOptions} submitMove={submitMove} />
+      <MoveDisplay title="Defender" moves={defenderOptions} submitMove={submitMove} />
     </>
   )
 }
 
-const MoveDisplay = ({title, moves}) => {
+const MoveDisplay = ({title, moves, submitMove}) => {
   const [selectedOption, setSelectedOption] = useState('');
-
-  const handleChange = (e) => {
-    setSelectedOption(e.target.value);
-    submitForm(e.target.value);
-  }
-
-  const submitForm = (value) => {
-    // submit logic goes here
-    console.log(`Selected option: ${value}`);
-  }
 
   return (
     <VStack>
       <Heading>{title} moves:</Heading>
-      <form>
+      <Flex
+        flexDirection={"column"}
+      >
         {moves.map((move, index) => (
-          <label>{move} 
-            <input
-              type="radio"
-              name="move"
-              value={index}
-              onChange={handleChange}
-            />
-            <br />
-          </label>
+          <Box
+            onClick={() => {setSelectedOption(index); submitMove(index)}}
+            className= {selectedOption === index ? "selected" : "unselected"}
+          >
+            <Text>
+              {move}
+            </Text>
+          </Box>
         ))}
-      </form>
+      </Flex>
     </VStack>
 
   )

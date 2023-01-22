@@ -51,3 +51,8 @@ input[type="radio"] {
 input[type="radio"]:checked + label {
   border: solid 2px green;
 }
+
+.selected {
+  text-shadow:
+  #be1313 0rem 0rem 0.3rem;
+}

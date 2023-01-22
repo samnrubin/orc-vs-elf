@@ -2,8 +2,17 @@ from fastapi import FastAPI
 from gpt import generate_moves
 from enum import Enum
 import random
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], #TODO change to origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 defense_moves = [
     "Parry",
