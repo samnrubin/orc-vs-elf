@@ -25,8 +25,13 @@ def generate_moves(attacker: bool, character: str, last_move: str = initial_move
         attacker = "attacker"
       else:
         attacker = "defender"
+      
       prompt = base_prompt + f"\n\nLast move: {last_move}"
-      prompt += f"\n\nThe {character} is the current {attacker}. Generate three moves that the {character} could possibly take next. The generated moves should only describe actions by the {character}:\n1."
+      prompt += f"\n\nThe {character} is the current {attacker}. Generate three moves that the {character} could possibly take next. The generated moves should only describe actions by the {character}."
+
+      if not attacker:
+        prompt += f"The {character} is on the defense, so the generated moves should only include defensive actions and should not involve the {character} attacking."
+      prompt += "\n\nMoves:\n1."
       output = send_prompt(prompt)
 
       moves = []
@@ -41,10 +46,14 @@ def generate_moves(attacker: bool, character: str, last_move: str = initial_move
 
 # Evaluate move success given both moves
 
+def evaluate_moves(elf_move: str, orc_move: str):
+  pass
+
 # Describe what happens next
 
 # Repeat!
 
 # Test stuff
 
-print(generate_moves(True, "elf"))
+print(generate_moves(True, "orc"))
+print(generate_moves(False, "elf"))
