@@ -15,7 +15,7 @@ const testLastMove = "The orc attacks the elf"
 
 function App() {
   // States are "choose" for choosing a move, "display" for displaying the moves, and "end" for the end of the game
-  const [state, setState] = useState("display");
+  const [state, setState] = useState("choose");
   return (
     <Flex
       width="100vw"
@@ -131,12 +131,34 @@ const ChooseMove = ({attacker, attackerOptions, defenderOptions, lastMove, playe
 }
 
 const MoveDisplay = ({title, moves}) => {
+  const [selectedOption, setSelectedOption] = useState('');
+
+  const handleChange = (e) => {
+    setSelectedOption(e.target.value);
+    submitForm(e.target.value);
+  }
+
+  const submitForm = (value) => {
+    // submit logic goes here
+    console.log(`Selected option: ${value}`);
+  }
+
   return (
     <VStack>
       <Heading>{title} moves:</Heading>
-      {moves.map((move, index) => (
-        <Text>{index + 1}. {move}</Text>
-      ))}
+      <form>
+        {moves.map((move, index) => (
+          <label>{move} 
+            <input
+              type="radio"
+              name="move"
+              value={index}
+              onChange={handleChange}
+            />
+            <br />
+          </label>
+        ))}
+      </form>
     </VStack>
 
   )
