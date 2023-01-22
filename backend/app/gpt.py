@@ -46,8 +46,87 @@ def generate_moves(attacker: bool, character: str, last_move: str = initial_move
 
 # Evaluate move success given both moves
 
-def evaluate_moves(elf_move: str, orc_move: str):
-  pass
+def evaluate_moves(attacker: str, elf_move: str, orc_move: str, last_move: str = initial_move):
+  while True:
+    try:
+      attacker_move = ""
+      defender_move = ""
+      defender = ""
+      if attacker == "elf":
+        defender = "orc"
+        attacker_move = elf_move
+        defender_move = orc_move
+      else:
+        defender = "elf"
+        attacker_move = orc_move
+        defender_move = elf_move
+      
+      prompt = base_prompt + f"\n\nLast move: {last_move}"
+      prompt += f"The {attacker} is the current attacker and the {defender} is the current defender\n\n"
+
+      prompt += f"The {attacker}'s plan of attack:\n{attacker_move}\n\n"
+      prompt += f"The {defender}'s plan of defense:\n{defender_move}\n\n"
+
+      prompt += f"These are just hypothetical plans and the next move has not yet taken place. The results will be a synthesis of both moves. Do you think the {attacker}'s hypothetical attack will succeed? Respond with 'Yes.' or 'No.' followed by your well thought-out reasoning and analysis of the situation.\n\nResponse:"
+
+      print(prompt)
+      resp = send_prompt(prompt)
+      # Extract 'Yes.' or 'No.' from response, then put it as a bool in a dict with the reasoning
+      result = resp.split(".")[0]
+      reasoning = ""
+
+      if result == "Yes":
+        result = True
+        reasoning = resp.split("Yes.")[1].strip()
+      elif result == "No":
+        result = False
+        reasoning = resp.split("No.")[1].strip()
+      else:
+        raise Exception("Invalid response")
+      
+      return {
+        "result": result,
+        "reasoning": reasoning
+      }
+    except Exception as e:
+      print(e)
+      print("Error, retrying")
+
+def generate_next_move(attacker: str, elf_move: str, orc_move: str, result: bool, reasoning: str, last_move: str = initial_move):
+  while True:
+    try:
+      attacker_move = ""
+      defender_move = ""
+      defender = ""
+      if attacker == "elf":
+        defender = "orc"
+        attacker_move = elf_move
+        defender_move = orc_move
+      else:
+        defender = "elf"
+        attacker_move = orc_move
+        defender_move = elf_move
+      
+      prompt = base_prompt + f"\n\nLast move: {last_move}"
+      prompt += f"The {attacker} is the current attacker and the {defender} is the current defender\n\n"
+
+      prompt += f"The {attacker}'s plan of attack:\n{attacker_move}\n\n"
+      prompt += f"The {defender}'s plan of defense:\n{defender_move}\n\n"
+
+      prompt += f"The {attacker}'s attack was {'successful' if result else 'unsuccessful'} because {reasoning}.\n\n"
+
+      prompt += "Generate a new move for the battle. Be creative and flesh the move out using the character's skills and the Market st. environment.\n\nResponse:"
+
+      print(prompt)
+      resp = send_prompt(prompt)
+      return resp.strip()
+
+
+    except Exception as e:
+      print(e)
+      print("Error, retrying")
+
+  
 
 # Describe what happens next
 
