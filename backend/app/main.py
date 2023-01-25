@@ -8,7 +8,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], #TODO change to origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -85,15 +85,6 @@ class Game:
             self.player2.health -= 1
         elif attacker == self.player2.name and success:
             self.player1.health -= 1
-
-
-
-
-def get_actions(player, is_attack):
-    if is_attack:
-        return random.sample(attack_moves, 3)
-    else:
-        return random.sample(defense_moves, 3)
 
 game = Game("elf", "orc")
 players = []
