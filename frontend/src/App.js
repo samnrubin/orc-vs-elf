@@ -5,47 +5,60 @@ import {
   HStack,
   Text,
   VStack,
-  Heading
+  Heading,
+  Divider
 } from '@chakra-ui/react';
 
 import { useEffect, useState } from 'react';
 
-const testMoves = ["Test1", "Test2", "Test3"]
-const testLastMove = "The orc attacks the elf"
 const url = "http://localhost:8000/"
 
 function App() {
   // States are "choose" for choosing a move, "display" for displaying the moves, and "end" for the end of the game
   const [state, setState] = useState("choose");
-  const [gameState, setGameState] = useState({});
+  const [gameState, setGameState] = useState(null);
   const [player, setPlayer] = useState("");
-  const [turn, setTurn] = useState(0);
+  const [turn, setTurn] = useState(-1);
   const [attacker, setAttacker] = useState("Orc");
+  const [elfHealth, setElfHealth] = useState(3);
+  const [orcHealth, setOrcHealth] = useState(3);
 
-  async function submitMove(moveChoice) {
+  let timer;
+
+  async function submitMove(moveChoice, name) {
+    console.log(name)
     await fetch(url + "take_action", {
       method: "POST",
       headers: { 
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({action: moveChoice, player: player})
+      body: JSON.stringify({action: moveChoice, player: name})
     })
   }
 
-  async function fetchState() {
-    const response = await fetch(url + "game_state")
-    const data = await response.json()
-    console.log(data)
-    if (data.turn_num != turn) {
-      setTurn(data.turn_num)
-      setState("display")
-      setGameState(data)
-      if (data.turn_num % 2 == 0) {
-        setAttacker("orc")
-      } else {
-        setAttacker("elf")
+  const fetchState = async () => {
+    timer = !timer && setInterval(async () => {
+      const response = await fetch(url + "game_state")
+      const data = await response.json()
+      if (data.turn_num !== turn) {
+        setTurn(data.turn_num)
+        if (data.turn_num === 0) {
+          setState("choose")
+        }
+        else {
+          setState("display")
+        }
+        setElfHealth(data.player1.health)
+        setOrcHealth(data.player2.health)
+        setGameState(data)
+        setAttacker(data.player1attack ? "elf" : "orc")
+        if (data.turn_num % 2 === 0) {
+          setAttacker("orc")
+        } else {
+          setAttacker("elf")
+        }
       }
-    }
+    }, 1000);
   }
 
   async function fetchPlayer() {
@@ -53,11 +66,12 @@ function App() {
     const data = await response.json()
     setPlayer(data.name)
   }
+  fetchPlayer()
 
   useEffect(() => {
-    fetchPlayer()
-    setInterval(fetchState, 1000)
-  }, [])
+    fetchState()
+    return () => clearInterval(timer);
+  }, [turn])
 
   return (
     <Flex
@@ -72,7 +86,9 @@ function App() {
       backgroundSize="cover"
 
     >
-      <CharacterDisplay character="Orc" />
+    {gameState !== null &&
+    <>
+      <CharacterDisplay character="Orc" health={orcHealth} />
       <Flex
         width="50%"
         justifyContent={"center"}
@@ -84,15 +100,19 @@ function App() {
           bg = "#ffffffa6"
           color="black"
           maxW="600px"
+          onClick={() => {setState("choose")}}
+          padding="1rem"
         >
           {state === "choose" ?
-          <ChooseMove attacker={attacker} attackerOptions={testMoves} defenderOptions={testMoves} lastMove={testLastMove} player={player} submitMove={submitMove} />
+          <ChooseMove attacker={attacker} attackerOptions={gameState.player1attack ? gameState.player1.available_actions : gameState.player2.available_actions} defenderOptions={!gameState.player1attack ? gameState.player1.available_actions : gameState.player2.available_actions} lastMove={gameState.last_move} player={player} submitMove={submitMove} />
           :
-          <DisplayResults success={true} reasoning={"The orc rolled a 5 and the elf rolled a 4"} moveDescription={"The orc attacks the elf"} attacker={"Orc"} />
+          <DisplayResults success={gameState.result} reasoning={gameState.reasoning} moveDescription={gameState.last_move} attacker={attacker === "orc" ? "elf" : "orc"} />
           }
         </Flex>
       </Flex>
-      <CharacterDisplay character="Elf" />
+      <CharacterDisplay character="Elf" health={elfHealth}/>
+        </>
+        }
     </Flex>
   );
 }
@@ -100,7 +120,7 @@ function App() {
 export default App;
 
 
-const CharacterDisplay = ({character}) => {
+const CharacterDisplay = ({character, health}) => {
   let image = character === "Elf" ? "elf.png" : "orc.png"
   return (
       <Flex
@@ -115,7 +135,7 @@ const CharacterDisplay = ({character}) => {
             maxW={"100%"}
           />
         </Flex>
-        <HealthDisplay heartNum={3} />
+        <HealthDisplay heartNum={health} />
       </Flex>
   )
 }
@@ -155,37 +175,30 @@ const ChooseMove = ({attacker, attackerOptions, defenderOptions, lastMove, playe
   return (
     <>
       <Flex
-        justifyItems={"center"}
-        flexDirection={"column"}
-      >
-        <Heading>Current attacker: {attacker}</Heading>
-        <Text>You are playing as the {player}</Text>
-      </Flex>
-      <Flex
         alignItems={"center"}
         flexDirection={"column"}
       >
-        <Heading>Last move:</Heading>
-        <Text>{lastMove}</Text>
+        <Text fontSize="2.5rem" sx={{textTransform: "capitalize"}} fontWeight={"bold"}>Current attacker: {attacker}</Text>
       </Flex>
-      <MoveDisplay title="Attacker" moves={attackerOptions} submitMove={submitMove} />
-      <MoveDisplay title="Defender" moves={defenderOptions} submitMove={submitMove} />
+      <MoveDisplay title="Attacker" moves={attackerOptions} submitMove={submitMove} name={attacker} />
+      <MoveDisplay title="Defender" moves={defenderOptions} submitMove={submitMove} name={attacker === "orc" ? "elf" : "orc"}/>
     </>
   )
 }
 
-const MoveDisplay = ({title, moves, submitMove}) => {
+const MoveDisplay = ({title, moves, submitMove, name}) => {
   const [selectedOption, setSelectedOption] = useState('');
 
   return (
     <VStack>
       <Heading>{title} moves:</Heading>
-      <Flex
+      <VStack
         flexDirection={"column"}
+        divider={<Divider borderColor="gray.200" />}
       >
         {moves.map((move, index) => (
           <Box
-            onClick={() => {setSelectedOption(index); submitMove(index)}}
+            onClick={() => {setSelectedOption(index); submitMove(index, name)}}
             className= {selectedOption === index ? "selected" : "unselected"}
             key={move}
           >
@@ -194,7 +207,7 @@ const MoveDisplay = ({title, moves, submitMove}) => {
             </Text>
           </Box>
         ))}
-      </Flex>
+      </VStack>
     </VStack>
 
   )
