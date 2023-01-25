@@ -27,6 +27,7 @@ class Player():
         self.taken_action = None
 
     def take_action(self, action: Action):
+        print(self.__dict__)
         self.taken_action = action
 
 
@@ -51,6 +52,7 @@ class Game:
         self.player2.available_actions = generate_moves(False, player2name)
 
     def next_turn(self):
+        print(self.__dict__)
         if self.player1.taken_action and self.player2.taken_action:
             last_player1_move = self.player1.available_actions[self.player1.taken_action.value]
             last_player2_move = self.player2.available_actions[self.player2.taken_action.value]
@@ -75,6 +77,7 @@ class Game:
         self.result = moves_eval["result"]
         self.reasoning = moves_eval["reasoning"]
         print(f"evaluating next move:\n attacker - {attacker}\n elfmove - {player1move}\n orcmove - {player2move}\n result - {self.result}\n reasoning - {self.reasoning}\n")
+        self.update_health(attacker, self.result)
         self.last_move = generate_next_move(attacker, player1move, player2move, self.result, self.reasoning, self.last_move)
 
     def update_health(self, attacker, success):
@@ -111,20 +114,14 @@ async def new_game():
 
 @app.post("/take_action")
 async def take_action(data: dict):
+    print(data)
     action = data["action"]
     player = data["player"]
-    if action < 0 and action > 2:
-        return {"error": "invalid action"}
-    if player == game.player1.name:
-        if game.player1.taken_action:
-            return {"error": f"player {player} already took action"}
+    
+    if player == "elf":
         game.player1.take_action(Action(action))
-    elif player == game.player2.name:
-        if game.player2.taken_action:
-            return {"error": f"player {player} already took action"}
+    elif player == "orc":
         game.player2.take_action(Action(action))
-    else:
-        return {"error": f"player not found, available players {game.player1.name}, {game.player2.name}"}
     if game.player1.taken_action and game.player2.taken_action:
         game.next_turn()
 

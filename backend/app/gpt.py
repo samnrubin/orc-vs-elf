@@ -43,7 +43,8 @@ def generate_moves(attacker: bool, character: str, last_move: str = initial_move
       moves.append(lines[1].split("2.")[1].strip())
       moves.append(lines[2].split("3.")[1].strip())
       return moves
-    except:
+    except Exception as e:
+      print(e)
       print("Error, retrying")
 
 # Evaluate move success given both moves
@@ -97,7 +98,6 @@ def evaluate_moves(attacker: str, elf_move: str, orc_move: str, last_move: str =
     except Exception as e:
       print(e)
       print("Error, retrying")
-      exit()
 
 def generate_next_move(attacker: str, elf_move: str, orc_move: str, result: bool, reasoning: str, last_move: str = initial_move):
   if not last_move:
@@ -134,7 +134,6 @@ def generate_next_move(attacker: str, elf_move: str, orc_move: str, result: bool
     except Exception as e:
       print(e)
       print("Error, retrying")
-      exit()
 
   
 
